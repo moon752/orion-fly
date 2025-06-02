@@ -1,0 +1,22 @@
+git clone https://github.com/moon752/orion-fly.git
+cd orion-fly
+echo ".env" > .gitignore
+touch .env
+mkdir -p scripts
+cat > scripts/test_telegram.py << EOF
+import os
+import requests
+
+token = os.environ.get("BOT_TOKEN")
+chat_id = "7485198018"
+message = "✅ ORION is live and secure on Replit!"
+
+url = f"https://api.telegram.org/bot{token}/sendMessage"
+resp = requests.post(url, data={"chat_id": chat_id, "text": message})
+
+print("Status:", resp.status_code)
+print("Response:", resp.text)
+EOF
+python3 scripts/test_telegram.py
+pwd
+
