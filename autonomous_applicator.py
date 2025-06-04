@@ -21,3 +21,15 @@ def run_loop():
 
 if __name__ == "__main__":
     run_loop()
+
+from openrouter_utils import print_simulation_summary
+
+def main():
+    print("🔁 ORION starting up...")
+    jobs = fetch_jobs()
+    print(f"🔍 Fetching jobs...\n📦 {len(jobs)} jobs found.")
+    choose_and_apply_jobs(jobs)
+    print_simulation_summary()
+
+if __name__ == "__main__":
+    main()
