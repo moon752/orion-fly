@@ -3,6 +3,10 @@ from openrouter import query_openrouter
 def filter_jobs(jobs):
     good_jobs = []
     for job in jobs:
+        sim = simulate_job(job)
+        if sim['decision'] == 'REJECT':
+            print(f'❌ Rejected job: {job["title"]} | Score: {sim["score"]}')
+            continue
         prompt = f"Is this job worth applying to? Job title: {job['title']}, Description: {job['description']}. Reply YES or NO."
         answer = query_openrouter(prompt)
         if 'yes' in answer.lower():
