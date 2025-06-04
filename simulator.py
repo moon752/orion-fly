@@ -1,36 +1,51 @@
-import random
+import requests
 import json
 
-def simulate_job(job):
-    difficulty = random.uniform(0, 1)
-    payout = job.get('pay', random.uniform(50, 200))
-    hours = random.uniform(1, 10)
-    score = (payout / hours) - (difficulty * 2)
-    decision = 'ACCEPT' if score > 10 else 'REJECT'
-    # Add AI auto-fix stub: simulate error detection & correction (dummy for now)
-    fix_attempts = 0
-    max_attempts = 3
-    while fix_attempts < max_attempts:
-        # Fake error detection (10% chance)
-        error_detected = random.random() < 0.1
-        if not error_detected:
-            break
-        fix_attempts += 1
-    result = {
-        'score': score,
-        'decision': decision,
-        'difficulty': difficulty,
-        'payout': payout,
-        'hours': hours,
-        'fix_attempts': fix_attempts,
-        'job_title': job.get('title', 'Unknown'),
-        'job_id': job.get('id', 'N/A')
-    }
-    return result
+WOKWI_API_URL = "https://wokwi.com/api/v1/arduino/simulate"
 
-def save_simulation_log(sim_results, filename='simulation_log.json'):
+def run_wokwi_simulation(arduino_code:str, circuit_json:str) -> dict:
+    payload = {
+        "files": {
+            "sketch.ino": arduino_code,
+            "circuit.json": circuit_json
+        },
+        "log": True,
+        "timeout": 15
+    }
     try:
-        with open(filename, 'a') as f:
-            f.write(json.dumps(sim_results) + '\\n')
+        resp = requests.post(WOKWI_API_URL, json=payload, timeout=20)
+        resp.raise_for_status()
+        return resp.json()
     except Exception as e:
-        print(f'Error saving simulation log: {e}')
+        return {"error": str(e)}
+
+def fix_code_with_ai(code:str, error:str) -> str:
+    print(f"🤖 AI fixing code due to error: {error}")
+    # TODO: Replace this stub with actual AI call to Ollama/OpenRouter
+    fixed_code = code + "\\n// AI auto-fix applied\\n"
+    return fixed_code
+
+def auto_fix_simulation(arduino_code, circuit_json, max_attempts=3):
+    for attempt in range(1, max_attempts+1):
+        print(f"🛠️ Attempt #{attempt} to simulate and fix...")
+        result = run_wokwi_simulation(arduino_code, circuit_json)
+        if 'error' in result:
+            print(f"❌ Simulation error: {result['error']}")
+            arduino_code = fix_code_with_ai(arduino_code, result['error'])
+            continue
+        if result.get('status') == 'success':
+            print("✅ Simulation success!")
+            return result
+        else:
+            print("❌ Simulation failed, retrying...")
+            arduino_code = fix_code_with_ai(arduino_code, "Unknown error, retrying...")
+    return {"error": "Max attempts reached, simulation failed"}
+
+def generate_human_summary(sim_result:dict) -> str:
+    if 'error' in sim_result:
+        return f"Simulation failed: {sim_result['error']}"
+    return "Simulation passed: Arduino code and circuit work perfectly."
+
+def save_simulation_output(sim_result:dict, filename="sim_output.json"):
+    with open(filename, "w") as f:
+        json.dump(sim_result, f, indent=2)
