@@ -1,0 +1,24 @@
+{
+  "slug": "remote-senior-backend-engineer-hockeystack-1093257",
+  "id": "1093257",
+  "epoch": 1748382903,
+  "date": "2025-05-27T21:55:03+00:00",
+  "company": "HockeyStack",
+  "company_logo": "https://remoteOK.com/assets/img/jobs/e294a02ca9a2e0455b30d1f009e6ff741748382903.png",
+  "position": "Senior Backend Engineer",
+  "tags": [
+    "dev",
+    "javascript",
+    "backend",
+    "api",
+    "engineer"
+  ],
+  "logo": "https://remoteOK.com/assets/img/jobs/e294a02ca9a2e0455b30d1f009e6ff741748382903.png",
+  "description": "<p dir=\"ltr\"><strong>HockeyStack helps B2B companies drive more revenue.</strong></p><p dir=\"ltr\">We're revolutionizing how marketing and sales teams leverage data and uncover insights from it using AI agents. Our cutting-edge data platform unifies and transforms data from CRMs, ad platforms, and websites in real-time, and our AI agents use these datapoints to extract actionable insights to drive more revenue.</p><p dir=\"ltr\">We are processing over 50 million records daily and our database has over 30TB of data and growing. Here's a one pager that goes more into detail about our business and the technical challenges: <a href=\"https://docs.google.com/document/d/1oZOIQWrD27VVJ0IXrHjrH5ozFMpo3qqDr5zcxaTvj8o/edit?usp=sharing\">https://docs.google.com/document/d/1oZOIQWrD27VVJ0IXrHjrH5ozFMpo3qqDr5zcxaTvj8o/edit?usp=sharing</a></p><p dir=\"ltr\">We graduated from YC\u00e2\u0080\u0099s Summer 23 batch and we've roughly doubled our ARR every 6 months since then. If you join, you'll be part of a high-growth startup with proven product-market fit, methodically building a billion-dollar company through a high-performance culture and exceptional talent.</p><h2 dir=\"ltr\">Who are we looking for?</h2><p>We need more smart backend people to help us grow and maintain our data platform. This includes many API integrations, high throughput data ingestion challenges, and processing millions of rows per second.</p><p>Our backend is built upon\u00c2\u00a0<strong>Node.js</strong>\u00c2\u00a0and\u00c2\u00a0<strong>Express</strong>\u00c2\u00a0so you need to be very comfortable with Javascript.</p><p><strong>The gist of this position is how good you are with reading through third-party APIs, handling and transforming large datasets with performance and scalability in mind, as well as the quality of the code you write.</strong></p><h2>Non-technical Expectations</h2><p>Excellent communication skills (English) is a must.</p><p>We aren\u00e2\u0080\u0099t looking for someone with 25 years of experience, we are looking for smart people who are up for a challenge.</p><p>We are primarily in pacific timezone and we expect at least 5 hours of overlap (generally until 4pm pacific time)</p><p>You should have experience with at least a CRM, an analytics tool, or a MarTech tool of some kind.</p><p>We are a team of builders and people that don't shy away from responsibility. You are expected to own parts of the platform and improve it with your own ideas as well.</p><br/><br/>Please mention the word **EXHILARATING** and tag RMzguNjguMTM0LjE5NA== when applying to show you read the job post completely (#RMzguNjguMTM0LjE5NA==). This is a beta feature to avoid spam applicants. Companies can search these words to find applicants that read this and see they're human.",
+  "location": "",
+  "salary_min": 80000,
+  "salary_max": 100000,
+  "apply_url": "https://remoteOK.com/remote-jobs/remote-senior-backend-engineer-hockeystack-1093257",
+  "original": true,
+  "url": "https://remoteOK.com/remote-jobs/remote-senior-backend-engineer-hockeystack-1093257"
+}
