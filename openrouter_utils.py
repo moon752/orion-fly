@@ -1,44 +1,21 @@
-
-import random
-from telegram_utils import send_telegram_message
 from openrouter import query_openrouter
 
-def choose_and_apply_jobs(jobs):
-    summary = ""
+def filter_jobs(jobs):
+    good_jobs = []
     for job in jobs:
-        title = job.get('position', '')
-        tags = job.get('tags', [])
-        description = job.get('description', '')
+        prompt = f"Is this job worth applying to? Job title: {job['title']}, Description: {job['description']}. Reply YES or NO."
+        answer = query_openrouter(prompt)
+        if 'yes' in answer.lower():
+            good_jobs.append(job)
+    return good_jobs
 
-        prompt = f"""
-You are ORION, an elite AI freelancer.
-Job Title: {title}
-Tags: {tags}
-Description: {description}
+def generate_cover_letter(job):
+    prompt = f"Write a professional cover letter for this job: {job['title']}, {job['description']}, using the name David Muigai."
+    return query_openrouter(prompt)
 
-Decide:
-1. Is this job a good match for your skills (Python, AI, automation)?
-2. If yes, write a short custom application message.
-3. If no, say "Skip".
-
-Respond ONLY with the application or "Skip".
-"""
-
-        response = query_openrouter(prompt).strip()
-
-        if "skip" in response.lower():
-            continue
-
-        message = f"""🧠 **Applied for Job**
-
-💼 Title: {title}
-🏷️ Tags: {', '.join(tags)}
-📨 Message:
-{response}
-
-✅ Status: Sent
-"""
-        send_telegram_message(message)
-        summary += f"✅ Applied to: {title}\n"
-
-    return summary if summary else "🤷 ORION skipped all jobs this round."
+def choose_and_apply_jobs(jobs):
+    filtered = filter_jobs(jobs)
+    for job in filtered:
+        letter = generate_cover_letter(job)
+        print(f"🚀 Applying to {job['title']}")
+        print(f"📝 Cover Letter:\n{letter}")
