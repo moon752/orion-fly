@@ -1,0 +1,33 @@
+name: Simulate Arduino Sketch with SimAVR
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Arduino CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+          echo "export PATH=\$HOME/bin:\$PATH" >> \$GITHUB_ENV
+          arduino-cli config init
+
+      - name: Update Arduino core index
+        run: arduino-cli core update-index
+
+      - name: Install Arduino AVR Core
+        run: arduino-cli core install arduino:avr
+
+      - name: Compile Arduino Sketch
+        run: arduino-cli compile --fqbn arduino:avr:uno ./test.ino
+
+      - name: Install SimAVR
+        run: sudo apt-get update && sudo apt-get install -y simavr
+
+      - name: Run SimAVR Simulation
+        run: simavr -m atmega328p -f 16000000 ./build/arduino.avr.uno/test.ino.hex
+
