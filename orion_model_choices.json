@@ -1,0 +1,6 @@
+{
+  "openrouter_models": {},
+  "groq_models": [
+    "llama3-70b-8192"
+  ]
+}
