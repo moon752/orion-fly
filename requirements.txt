@@ -1,0 +1,9 @@
+selenium
+undetected-chromedriver
+xvfbwrapper
+undetected-chromedriver==3.5.5
+xvfbwrapper
+selenium
+undetected-chromedriver==3.5.3
+xvfbwrapper
+selenium
