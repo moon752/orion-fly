@@ -1,9 +1,6 @@
-selenium
-undetected-chromedriver
-xvfbwrapper
-undetected-chromedriver==3.5.5
-xvfbwrapper
-selenium
-undetected-chromedriver==3.5.3
-xvfbwrapper
-selenium
+playwright==1.52.0
+playwright-stealth==1.1.6
+python-dotenv
+aiohttp
+undetected-chromedriver>=3.5
+pydrive2

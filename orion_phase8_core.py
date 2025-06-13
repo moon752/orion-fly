@@ -1,60 +1,69 @@
-# orion_phase8_core.py
+"""
+Phase 8 – Self‑Healing, Self‑Upgrading Core (Clean Build)
+• Logs errors, sends to Telegram
+• Uses utils.ai_model.query_model (OpenRouter + Groq)
+• Cleans AI patches (strips diff/markdown) before execution
+• Rotates keys & obeys RPM limit via utils.ai_model
+"""
 
-# Phase 8: Self-Healing, Self-Upgrading, Self-Research Core
-
-import traceback
-import subprocess
-import os
+import os, traceback, subprocess, time, json
 from utils.telegram import send_telegram_message
+from utils.ai_model import query_model
 from utils.secret_store import save_secret
-from utils.ai_model import query_model  # Wraps OpenRouter or Groq
 
-ERROR_LOG = "orion/logs/errors.log"
-PATCH_DIR = "orion/patches"
+PATCH_DIR  = "orion/patches"
+ERROR_LOG  = "orion/logs/errors.log"
+os.makedirs(PATCH_DIR, exist_ok=True)
+os.makedirs(os.path.dirname(ERROR_LOG), exist_ok=True)
 
-# --- 1. Error Handler ---
-def log_error(e):
-    error_text = traceback.format_exc()
-    os.makedirs(os.path.dirname(ERROR_LOG), exist_ok=True)
-    with open(ERROR_LOG, "a") as f:
-        f.write(error_text + "\n")
-    send_telegram_message(f"❌ ORION Error:\n{error_text}")
-    return error_text
+# ── Error handling ────────────────────────────────────────────
+def log_error(exc: Exception) -> str:
+    txt = traceback.format_exc()
+    with open(ERROR_LOG, "a") as f: f.write(f"{time.ctime()}\\n{txt}\\n")
+    send_telegram_message(f"❌ ORION Error:\\n{txt}")
+    return txt
 
-# --- 2. Self-Research (using AI model) ---
-def self_research(error_text):
-    prompt = f"ORION failed with the following error:\n\n{error_text}\n\nGenerate a patch or fix for this problem in Python."
-    return query_model(prompt)
+# ── Patch cleaner & executor ──────────────────────────────────
+def clean_patch(code: str) -> str:
+    cleaned = []
+    for ln in code.splitlines():
+        ln_strip = ln.lstrip()
+        if ln_strip.startswith(("```", "@@", "+", "- ", "-\t", "---", "+++")):
+            continue
+        cleaned.append(ln)
+    return "\n".join(cleaned)
 
-# --- 3. Patch Application Logic ---
-def apply_patch(patch_code):
-    os.makedirs(PATCH_DIR, exist_ok=True)
-    patch_path = os.path.join(PATCH_DIR, "temp_patch.py")
-    with open(patch_path, "w") as f:
-        f.write(patch_code)
-    result = subprocess.run(["python3", patch_path])
-    if result.returncode == 0:
+def apply_patch(patch_code: str) -> bool:
+    patch_code = clean_patch(patch_code)
+
+if not patch_code.strip() or patch_code.strip().startswith("#"):
+    send_telegram_message("❌ Patch skipped — empty or comment‑only.")
+    return False
+
+    path = os.path.join(PATCH_DIR, "temp_patch.py")
+    with open(path, "w") as f: f.write(patch_code)
+    res = subprocess.run(["python3", path])
+    if res.returncode == 0:
         send_telegram_message("✅ Patch applied successfully.")
         return True
-    else:
-        send_telegram_message("❌ Patch failed during execution.")
-        return False
+    send_telegram_message("❌ Patch failed – invalid Python.")
+    return False
 
-# --- 4. Telegram Secret Injection (/inject KEY=VALUE) ---
-def handle_telegram_command(cmd):
+# ── Telegram secret injection (/inject KEY=VALUE) ─────────────
+def handle_telegram(cmd: str):
     if cmd.startswith("/inject "):
         try:
-            key, value = cmd.replace("/inject ", "").split("=", 1)
-            save_secret(key.strip(), value.strip())
-            send_telegram_message(f"✅ Injected `{key}` successfully.")
+            k, v = cmd[8:].split("=", 1)
+            save_secret(k.strip(), v.strip())
+            send_telegram_message(f"✅ Secret `{k}` stored.")
         except Exception as e:
             log_error(e)
 
-# --- Main simulation for test ---
+# ── MAIN test block ───────────────────────────────────────────
 if __name__ == "__main__":
     try:
-        raise RuntimeError("Simulated ORION crash in test phase.")
+# raise RuntimeError("Simulated ORION crash (Phase 8 test).")
     except Exception as e:
-        error_info = log_error(e)
-        fix_code = self_research(error_info)
-        apply_patch(fix_code)
+        err = log_error(e)
+        patch = query_model(f"Fix this Python error:\n{err}\nReturn a full patch file.")
+        apply_patch(patch)

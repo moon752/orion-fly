@@ -2,3 +2,4 @@ logs/
 .env
 __pycache__/
 *.pyc
+orion/data/free_models.json
