@@ -1,17 +1,11 @@
-import requests
-import os
+import os, requests, textwrap
 
-BOT_TOKEN = "8140849713:AAFrbl-VYiJdIXen9TP3Jolv8ge5ZmnM0P4"
-CHAT_ID = "7485198018"
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+CHAT_ID   = os.getenv("TELEGRAM_CHAT_ID")
 
-def send_telegram_message(message):
+def send_telegram(text: str):
+    if not BOT_TOKEN or not CHAT_ID:
+        print("🔔 Telegram env vars missing — cannot send message.")
+        return
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": CHAT_ID,
-        "text": message,
-        "parse_mode": "Markdown"
-    }
-    try:
-        requests.post(url, json=payload)
-    except Exception as e:
-        print(f"Failed to send Telegram message: {e}")
+    requests.post(url, data={"chat_id": CHAT_ID, "text": text[:4096]})
