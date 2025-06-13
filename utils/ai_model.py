@@ -42,5 +42,5 @@ def chat_openrouter(messages, model=None):
 
 class ai:
     @staticmethod
-    def chat(messages):
-        return chat_openrouter(messages)
+    def chat(messages, model=None):
+        return chat_openrouter(messages, model)
