@@ -7,29 +7,28 @@ OPENROUTER_KEYS = [
     # Add more keys here if needed
 ]
 
-def chat_openrouter(messages, model="meta-llama/llama-3.1-70b-instruct:nitro"):
-    for key in OPENROUTER_KEYS:
-        try:
-            headers = {
-                "Authorization": f"Bearer {key}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": "https://t.me/killbirdbot",
-                "X-Title": "ORION",
-            }
-            data = {
-                "model": model,
-                "messages": messages,
-                "provider": {
-                    "sort": "throughput",
-                    "allow_fallbacks": True,
-                    "require_parameters": False,
-                    "data_collection": "deny"
-                }
-            }
-            response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
-            if response.status_code == 200:
-                result = response.json()
-                return result["choices"][0]["message"]["content"]
+
+def chat_openrouter(messages, model="deepseek/deepseek-prover-v2"):
+    import os, requests, random
+    key = os.getenv("OPENROUTER_API_KEY") or random.choice([k for k in OPENROUTER_KEYS if k])
+    headers = {
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json"
+    }
+    body = {
+        "model": model,
+        "messages": messages,
+        "provider": { "sort": "throughput" }
+    }
+    r = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=body, timeout=40)
+    if r.status_code != 200:
+        print(f"[OpenRouter ERROR] {r.status_code}: {r.text[:120]}")
+        return None
+    data = r.json()
+    if "choices" not in data:
+        print(f"[OpenRouter Missing Choices] {data}")
+        return None
+    return data["choices"][0]["message"]["content"]
             else:
                 print(f"[OpenRouter] Key failed ({key[:10]}): {response.status_code} {response.text}")
         except Exception as e:
