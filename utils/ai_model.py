@@ -35,3 +35,4 @@ def chat_openrouter(messages, model="meta-llama/llama-3.1-70b-instruct:nitro"):
         except Exception as e:
             print(f"[OpenRouter] Exception for key {key[:10]}: {e}")
     raise Exception("[ORION] All OpenRouter keys failed.")
+ai = chat_openrouter
