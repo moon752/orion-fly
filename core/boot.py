@@ -1,3 +1,4 @@
+import sys; sys.path.append(".")
 # ORION startup sequence (Phase 20)
 import os
 from utils.ai_model import ai
