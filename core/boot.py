@@ -5,10 +5,16 @@ from utils.ai_model import ai
 from utils.telegram import send_telegram
 from brain.self_awareness import system_info
 
+
 def check_llm():
     try:
-        reply = ai.chat([{"role":"user","content":"Say LLM OK"}])
+        reply = ai.chat(
+            [{"role": "user", "content": "Say LLM OK"}],
+            model="openchat/openchat-3.5-1210"  # always‑free model
+        )
         return "🧠 LLM: OK" if "OK" in reply else f"⚠️ LLM unexpected: {reply[:30]}"
+    except Exception as e:
+        return f"❌ LLM ERROR — {str(e)[:60]}"
     except Exception as e:
         return f"❌ LLM ERROR — {str(e)[:60]}"
 
