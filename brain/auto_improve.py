@@ -1,3 +1,4 @@
+import sys, os; sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 """
 ORION Auto‑Improver  (Phase19 core)
 
@@ -27,7 +28,7 @@ def build_prompt(file_path, extra=None):
     return header
 
 def query_llm(prompt):
-    return ai.chat([
+    return ai([
         {"role":"system","content":"You are ORION's senior software engineer."},
         {"role":"user","content":prompt}
     ])

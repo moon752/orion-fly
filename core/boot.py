@@ -8,7 +8,7 @@ from brain.self_awareness import system_info
 
 def check_llm():
     try:
-        reply = ai.chat(
+        reply = ai(
             [{"role": "user", "content": "Say LLM OK"}],
             model="openchat/openchat-3.5-1210"  # always‑free model
         )
