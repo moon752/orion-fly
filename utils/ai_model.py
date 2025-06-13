@@ -1,59 +1,75 @@
-import os, requests, time, re
-from collections import deque
-from dotenv import load_dotenv
-load_dotenv()
+"""
+utils/ai_model.py – ORION unified AI wrapper
 
-OR_KEYS    = os.getenv("OPENROUTER_KEYS","").split(",")
-GROQ_KEYS  = os.getenv("GROQ_KEYS","").split(",")
-OR_MODEL   = os.getenv("OPENROUTER_MODEL", "deepseek/deepseek-coder:free")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama3-70b-8192")
-RPM_LIMIT  = int(os.getenv("OPENROUTER_RPM", "30"))  # safe limit per key
+• Rotates through all stored OpenRouter keys
+• Loads free‑model list at runtime from orion/data/free_models.json
+• Falls back to Groq if OpenRouter fails
+"""
 
-timestamp_queue = deque(maxlen=RPM_LIMIT)
+import json, random, requests, pathlib
 
-def _rate_limit_sleep():
-    if len(timestamp_queue) == RPM_LIMIT:
-        delta = time.time() - timestamp_queue[0]
-        if delta < 60:
-            time.sleep(60 - delta)
+# --- API KEYS -------------------------------------------------------------
+OPENROUTER_KEYS = [
+    # NEW KEYS FIRST
+    "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",
+    "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",
+    # EXISTING
+    "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",
+    "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",
+    "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"
+]
 
-def _strip(text):
-    text = re.sub(r"[^\x00-\x7F]+", "", text)
-    if "```" in text:
-        parts = re.findall(r"```(?:python)?(.*?)```", text, re.S)
-        if parts:
-            return parts[0].strip()
-    return text.strip()
+GROQ_KEYS = [
+    "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",
+    "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"
+]
 
+# --- MODEL LIST ----------------------------------------------------------
+def load_free_models():
+    fp = pathlib.Path("orion/data/free_models.json")
+    if fp.exists():
+        try:
+            return json.loads(fp.read_text())
+        except Exception:
+            pass
+    # fallback minimal list
+    return [
+        "openchat/openchat-3.5-1210",
+        "mistralai/mistral-7b-instruct",
+        "deepseek/deepseek-prover-v2"
+    ]
 
-def query_model(prompt, retries=3):
-    # 1) GROQ first
-    for _ in range(retries):
-        for key in [k.strip() for k in GROQ_KEYS if k.strip()]:
-            try:
-                r = requests.post(
-                    "https://api.groq.com/openai/v1/chat/completions",
-                    headers={"Authorization":f"Bearer {key}","Content-Type":"application/json"},
-                    json={"model": GROQ_MODEL,"messages":[{"role":"user","content":prompt}]},
-                    timeout=45
-                )
-                if r.status_code==200 and "choices" in r.json():
-                    return _strip(r.json()["choices"][0]["message"]["content"])
-            except Exception: pass
-    # 2) OpenRouter fallback (rate‑limited)
-    for _ in range(retries):
-        for key in [k.strip() for k in OR_KEYS if k.strip()]:
-            _rate_limit_sleep()
-            try:
-                r = requests.post(
-                    "https://openrouter.ai/api/v1/chat/completions",
-                    headers={"Authorization":f"Bearer {key}","Content-Type":"application/json"},
-                    json={"model": OR_MODEL,"messages":[{"role":"user","content":prompt}]},
-                    timeout=45
-                )
-                if r.status_code==200 and "choices" in r.json():
-                    timestamp_queue.append(time.time())
-                    return _strip(r.json()["choices"][0]["message"]["content"])
-            except Exception: pass
-    return "# all keys failed"
-"
+# --- CHAT FUNCTIONS ------------------------------------------------------
+def chat_openrouter(messages, model=None):
+    key   = random.choice(OPENROUTER_KEYS)
+    model = model or random.choice(load_free_models())
+    r = requests.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers={"Authorization": f"Bearer {key}"},
+        json={"model": model, "messages": messages},
+        timeout=40
+    )
+    r.raise_for_status()
+    data = r.json()
+    return data["choices"][0]["message"]["content"]
+
+def chat_groq(messages, model="mixtral-8x7b-32768"):
+    key = random.choice(GROQ_KEYS)
+    r = requests.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers={"Authorization": f"Bearer {key}"},
+        json={"model": model, "messages": messages},
+        timeout=40
+    )
+    r.raise_for_status()
+    data = r.json()
+    return data["choices"][0]["message"]["content"]
+
+# --- Public shim ---------------------------------------------------------
+class ai:
+    @staticmethod
+    def chat(messages):
+        try:
+            return chat_openrouter(messages)
+        except Exception:
+            return chat_groq(messages)  # last‑chance fallback
