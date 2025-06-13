@@ -4,3 +4,5 @@ python-dotenv
 aiohttp
 undetected-chromedriver>=3.5
 pydrive2
+ghostcursor
+pyyaml
