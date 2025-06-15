@@ -1,1 +1,1 @@
-def bid(job_id): print("Bidding on", job_id)
+def bid(j): pass

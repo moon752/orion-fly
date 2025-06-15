@@ -1,1 +1,1 @@
-def send_report(): print("Daily report sent")
+def send_report(): pass

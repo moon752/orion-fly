@@ -1,1 +1,1 @@
-def edit_profile(p): print("Editing profile:", p)
+def edit_profile(p): pass

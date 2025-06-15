@@ -1,1 +1,1 @@
-def rotate_ip(): print("Rotating IP ... (stub)")
+def rotate_ip(): pass
