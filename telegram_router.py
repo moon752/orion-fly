@@ -5,6 +5,24 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID  = os.getenv("TELEGRAM_CHAT_ID")
 bot = telebot.TeleBot(BOT_TOKEN)
 
+
+@bot.message_handler(commands=['auto_build'])
+def handle_auto_build(message):
+    if str(message.chat.id) != CHAT_ID: return
+    from builder.audit import find_gaps
+    missing = find_gaps()
+    if not missing:
+        bot.send_message(CHAT_ID,"✅ All phases present.")
+        return
+    bot.send_message(CHAT_ID,f"🔨 Building {len(missing)} missing modules...")
+    for path in missing.values():
+        from builder.gen_patch import make_patch
+        diff = make_patch(path)
+        bot.send_message(CHAT_ID,f"Patch ready: {diff}")
+    from builder.apply_and_push import main as apply
+    apply()
+    bot.send_message(CHAT_ID,"🚀 Auto‑build finished & pushed!")
+
 @bot.message_handler(commands=['cmd'])
 def cmd(msg):
     if str(msg.chat.id) != CHAT_ID: return
