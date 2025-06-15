@@ -1,37 +1,92 @@
-import random, os, requests
+"""
+Unified AI wrapper for ORION
+Providers (free‐tier rotation):
+• Fireworks AI (fw_…)
+• Hugging Face Inference Endpoints (hf_…)
+• Generic alt keys (HBg…, cye…)
+• Groq fallback
+Rate-limit: 1 req/sec per key
+"""
+import os, random, time, requests
 
-OPENROUTER_KEYS = [
-    os.getenv("OPENROUTER_KEY_1"),
-    os.getenv("OPENROUTER_KEY_2"),
-    os.getenv("OPENROUTER_KEY_3"),
-    # Add more keys here if needed
-]
+FIRE_KEYS = [k.strip() for k in os.getenv("FIREWORKS_KEYS","").split(",") if k.strip()]
+HF_KEYS   = [k.strip() for k in os.getenv("HF_KEYS","").split(",") if k.strip()]
+ALT_KEYS  = [k.strip() for k in os.getenv("ALT_KEYS","").split(",") if k.strip()]
+GROQ_KEYS = [k.strip() for k in os.getenv("GROQ_KEYS","").split(",") if k.strip()]
 
+_LAST_HIT = {}  # key → ts
 
-def chat_openrouter(messages, model="deepseek/deepseek-prover-v2"):
-    import os, requests, random
-    key = os.getenv("OPENROUTER_API_KEY") or random.choice([k for k in OPENROUTER_KEYS if k])
-    headers = {
-        "Authorization": f"Bearer {key}",
-        "Content-Type": "application/json"
-    }
-    body = {
-        "model": model,
-        "messages": messages,
-        "provider": { "sort": "throughput" }
-    }
-    r = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=body, timeout=40)
-    if r.status_code != 200:
-        print(f"[OpenRouter ERROR] {r.status_code}: {r.text[:120]}")
-        return None
-    data = r.json()
-    if "choices" not in data:
-        print(f"[OpenRouter Missing Choices] {data}")
-        return None
-    return data["choices"][0]["message"]["content"]
-            else:
-                print(f"[OpenRouter] Key failed ({key[:10]}): {response.status_code} {response.text}")
+def _throttle(key):
+    now = time.time()
+    if key in _LAST_HIT and now - _LAST_HIT[key] < 1.0:
+        time.sleep(1.0 - (now - _LAST_HIT[key]))
+    _LAST_HIT[key] = time.time()
+
+# ---------- Fireworks ----------
+def chat_fireworks(messages, model="accounts/fireworks/models/mixtral-8x7b-instruct"):
+    for key in FIRE_KEYS:
+        try:
+            _throttle(key)
+            r = requests.post(
+                "https://api.fireworks.ai/inference/v1/chat/completions",
+                headers={"Content-Type":"application/json","Authorization":f"Bearer {key}"},
+                json={"model":model,"messages":messages},
+                timeout=40
+            )
+            if r.status_code == 200:
+                return r.json()["choices"][0]["message"]["content"]
         except Exception as e:
-            print(f"[OpenRouter] Exception for key {key[:10]}: {e}")
-    raise Exception("[ORION] All OpenRouter keys failed.")
-ai = chat_openrouter
+            print(f"[FW fail] {e}")
+    return None
+
+# ---------- Hugging Face ----------
+def chat_hf(messages, model="HuggingFaceH4/zephyr-7b-beta"):
+    for key in HF_KEYS:
+        try:
+            _throttle(key)
+            r = requests.post(
+                f"https://api-inference.huggingface.co/models/{model}",
+                headers={"Authorization":f"Bearer {key}","Content-Type":"application/json"},
+                json={"inputs":messages[-1]["content"]},
+                timeout=40
+            )
+            if r.status_code == 200:
+                return r.json()[0]["generated_text"]
+        except Exception as e:
+            print(f"[HF fail] {e}")
+    return None
+
+# ---------- Alt provider (dummy echo) ----------
+def chat_alt(messages):
+    for key in ALT_KEYS:
+        try:
+            _throttle(key)
+            # this is a placeholder; replace with real endpoint if needed
+            return "[ALT provider not yet implemented]"
+        except Exception:
+            continue
+    return None
+
+# ---------- Groq fallback ----------
+def chat_groq(messages, model="mixtral-8x7b-32768"):
+    for key in GROQ_KEYS:
+        try:
+            _throttle(key)
+            r = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization":f"Bearer {key}","Content-Type":"application/json"},
+                json={"model":model,"messages":messages},
+                timeout=40
+            )
+            if r.status_code == 200:
+                return r.json()["choices"][0]["message"]["content"]
+        except Exception as e:
+            print(f"[Groq fail] {e}")
+    return None
+
+# ---------- Master router ----------
+def ai(messages, model=None):
+    for fn in (chat_fireworks, chat_hf, chat_alt, chat_groq):
+        reply = fn(messages, model) if model else fn(messages)
+        if reply: return reply
+    raise RuntimeError("All providers failed")
