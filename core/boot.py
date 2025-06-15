@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.append(os.path.abspath("."))
 import psutil
 import platform
 from utils.ai_model import ai
