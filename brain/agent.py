@@ -15,7 +15,7 @@ def main():
         if v >= 3 and pathlib.Path(patch).exists():
             if apply_patch(patch):
                 subprocess.run(["git", "add", "."], check=False)
-                subprocess.run(["git", "commit", "-m", f'🤖 auto‑patch {patch}'], check=False)
+                subprocess.run(["git", "commit", "-m", f'🤖 auto-patch {patch}'], check=False)
                 subprocess.run(["git", "push"], check=False)
 if __name__ == "__main__":
     main()

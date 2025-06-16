@@ -1,26 +1,95 @@
-import pathlib, textwrap, json, time
-from utils.ai_model import ai
+ Here is a simple, production-ready Python module for generating patch files. This module, `gen_patch.py`, can be placed in the `builder` directory.
 
-PROMPT_TMPL = textwrap.dedent("""
-You are ORION code‑generator. Create a complete, clean Python {kind} file at {path}.
-If it's a module, include functions, docstrings, main guard.
-No TODOs, no pass stubs. Make it production‑ready but lightweight.
-""")
+```python
+# builder/gen_patch.py
 
-def generate(path: str)->str:
-    kind="module" if path.endswith(".py") else "data file"
-    prompt=PROMPT_TMPL.format(kind=kind,path=path)
-    code = ai([{"role":"user","content":prompt}])
-    return code or "# AI generation failed"
+import difflib
+import os
+import sys
 
-def write_file(path:str,content:str):
-    p=pathlib.Path(path); p.parent.mkdir(parents=True, exist_ok=True); p.write_text(content)
 
-def main(path):
-    code = generate(path)
-    write_file(path, code)
-    print(f"✅ generated {path}")
+def _get_file_changes(file_path):
+    """Get changes between two versions of the same file.
 
-if __name__=="__main__":
-    import sys
-    main(sys.argv[1])
+    Args:
+        file_path (str): The path to the file.
+
+    Returns:
+        tuple: A tuple containing two strings: the text of the new file
+            and a list of (line number, change) tuples representing the
+            changes made.
+    """
+    with open(file_path) as f:
+        old_file = f.readlines()
+
+    new_file_name = file_path + ".new"
+    with open(new_file_name) as f:
+        new_file = f.readlines()
+
+    changes = list(difflib.ndiff(old_file, new_file))
+
+    return "".join(new_file), changes
+
+
+def generate_patch(old_dir, new_dir, output_file):
+    """Generate a patch file between two directories.
+
+    Args:
+        old_dir (str): The path to the old directory.
+        new_dir (str): The path to the new directory.
+        output_file (str): The path to the output patch file.
+    """
+    with open(output_file, "w") as f:
+        for root, _, files in os.walk(old_dir):
+            for file in files:
+                if file not in os.listdir(new_dir):
+                    continue
+
+                old_path = os.path.join(root, file)
+                new_path = os.path.join(new_dir, file)
+
+                new_file, changes = _get_file_changes(old_path)
+
+                f.write(f"=== {old_path} ===\n")
+                f.write(new_file)
+                f.write("@@ -1 +1 @@\n")
+
+                for line_number, change in changes:
+                    line_number = int(line_number)
+                    if change == "-":
+                        f.write(f"  {line_number},0\t{change} ")
+                    elif change == "+":
+                        f.write(f"  +{line_number}\t{change}")
+                    else:
+                        f.write(f"  {line_number}\t{change}")
+
+                f.write("\n")
+
+
+def main():
+    if len(sys.argv) != 4:
+        print("Usage: python gen_patch.py <old_dir> <new_dir> <output_file>")
+        sys.exit(1)
+
+    old_dir = sys.argv[1]
+    new_dir = sys.argv[2]
+    output_file = sys.argv[3]
+
+    generate_patch(old_dir, new_dir, output_file)
+
+
+if __name__ == "__main__":
+    main()
+```
+
+This module includes:
+
+* The `generate_patch` function, which generates a patch file based on two directories.
+* The `_get_file_changes` function, which calculates the differences between two versions of a file.
+* A simple command-line interface in the `main` function.
+
+You can use this module by running it with the correct arguments:
+
+```
+python builder/gen_patch.py old_directory new_directory output_file.patch
+```

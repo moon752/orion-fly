@@ -10,7 +10,7 @@ bot = telebot.TeleBot(BOT_TOKEN)
 @bot.message_handler(commands=['auto_build'])
 def handle_auto_build(msg):
     if str(msg.chat.id)!=CHAT_ID: return
-    bot.send_message(CHAT_ID,"🔍 Auto‑build started…")
+    bot.send_message(CHAT_ID,"🔍 Auto-build started…")
     from builder import find_targets
     targets=find_targets()
     if not targets:
@@ -20,7 +20,7 @@ def handle_auto_build(msg):
     for t in targets: build(t)
     from builder.apply_and_push import main as push
     push()
-    bot.send_message(CHAT_ID,"🚀 Auto‑build complete & pushed.")
+    bot.send_message(CHAT_ID,"🚀 Auto-build complete & pushed.")
 
 @bot.message_handler(commands=['auto_build'])
 def handle_auto_build(message):
@@ -37,7 +37,7 @@ def handle_auto_build(message):
         bot.send_message(CHAT_ID,f"Patch ready: {diff}")
     from builder.apply_and_push import main as apply
     apply()
-    bot.send_message(CHAT_ID,"🚀 Auto‑build finished & pushed!")
+    bot.send_message(CHAT_ID,"🚀 Auto-build finished & pushed!")
 
 @bot.message_handler(commands=['cmd'])
 def cmd(msg):

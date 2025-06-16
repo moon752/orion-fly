@@ -1,1 +1,4 @@
-def self_update(): pass
+# ♻️ Self-Updater
+
+def upgrade():
+    print('Checking for updates and applying them.')

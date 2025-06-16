@@ -1,6 +1,6 @@
 import sys, os; sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 """
-ORION Auto‑Improver  (Phase19 core)
+ORION Auto-Improver  (Phase19 core)
 
 Usage:
     python3 brain/auto_improve.py                # LLM decides what to improve
@@ -18,11 +18,11 @@ def choose_file():
     return max(py_files, key=lambda p: p.stat().st_mtime)  # last modified
 
 def build_prompt(file_path, extra=None):
-    header = f"ORION code base self‑improvement task. Today's UTC {datetime.datetime.utcnow()}.\n"
+    header = f"ORION code base self-improvement task. Today's UTC {datetime.datetime.utcnow()}.\n"
     if file_path:
         code = pathlib.Path(file_path).read_text()
         header += f"--- FILE:{file_path} BELOW ---\n{code}\n--- END FILE ---\n"
-        header += "Suggest a unified‑diff patch that improves performance, security, or readability."
+        header += "Suggest a unified-diff patch that improves performance, security, or readability."
     else:
         header += f"Task: {extra}\nSuggest code changes, specify target file(s) and provide patches."
     return header

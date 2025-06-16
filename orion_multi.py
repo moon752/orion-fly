@@ -6,7 +6,7 @@ async def spawn(n):
     await run_orion()
 
 async def main():
-    await asyncio.gather(*(spawn(i) for i in range(5)))  # 5‑node hive
+    await asyncio.gather(*(spawn(i) for i in range(5)))  # 5-node hive
 
 if __name__ == "__main__":
     asyncio.run(main())

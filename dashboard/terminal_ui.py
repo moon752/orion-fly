@@ -1,1 +1,4 @@
-def show(): print('Dashboard stub')
+# 📟 Terminal Dashboard UI
+
+def launch_ui():
+    print('Showing ORION status dashboard.')

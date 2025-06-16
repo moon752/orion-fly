@@ -1,5 +1,5 @@
 """
-Phase 8 – Self‑Healing, Self‑Upgrading Core (Clean Build)
+Phase 8 – Self-Healing, Self-Upgrading Core (Clean Build)
 • Logs errors, sends to Telegram
 • Uses utils.ai_model.query_model (OpenRouter + Groq)
 • Cleans AI patches (strips diff/markdown) before execution
@@ -37,7 +37,7 @@ def apply_patch(patch_code: str) -> bool:
     patch_code = clean_patch(patch_code)
 
 if not patch_code.strip() or patch_code.strip().startswith("#"):
-    send_telegram_message("❌ Patch skipped — empty or comment‑only.")
+    send_telegram_message("❌ Patch skipped — empty or comment-only.")
     return False
 
     path = os.path.join(PATCH_DIR, "temp_patch.py")

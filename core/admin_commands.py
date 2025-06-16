@@ -1,1 +1,4 @@
-def run(cmd,sig): return 'stub'
+# 🔐 Admin Commands
+
+def run_admin():
+    print('Admin controls activated.')

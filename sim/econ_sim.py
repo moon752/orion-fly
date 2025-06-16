@@ -2,7 +2,7 @@ import sqlite3, random, os, json, math
 DB="sim/econ.db"; os.makedirs("sim", exist_ok=True)
 conn=sqlite3.connect(DB); cur=conn.cursor()
 cur.execute("CREATE TABLE IF NOT EXISTS stats(job TEXT PRIMARY KEY, wins INT, losses INT)")
-def beta_sample(a,b):       # std‑lib Thompson sample
+def beta_sample(a,b):       # std-lib Thompson sample
     return random.betavariate(a,b)
 def thompson_pick(job):
     cur.execute("SELECT wins,losses FROM stats WHERE job=?", (job,))

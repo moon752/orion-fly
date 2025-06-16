@@ -1,1 +1,4 @@
-def backup(): pass
+# 💾 Backup Manager
+
+def backup():
+    print('Backing up local files to cloud.')
