@@ -7,7 +7,12 @@ Providers (free‐tier rotation):
 • Groq fallback
 Rate-limit: 1 req/sec per key
 """
-import os, random, time, requests
+\1
+# --- Load keys from environment (Replit Secrets / Railway Variables) ---
+GROQ_KEYS = os.getenv("GROQ_KEYS", "").split(",")
+FIREWORKS_KEYS = os.getenv("FIREWORKS_KEYS", "").split(",")
+HF_KEYS = os.getenv("HF_KEYS", "").split(",")
+
 
 FIRE_KEYS = [k.strip() for k in os.getenv("FIREWORKS_KEYS","").split(",") if k.strip()]
 HF_KEYS   = [k.strip() for k in os.getenv("HF_KEYS","").split(",") if k.strip()]
