@@ -9,7 +9,8 @@ for k in keys:
             "https://api.groq.com/openai/v1/chat/completions",
             headers={"Authorization": f"Bearer {k}"},
             json={
-                "model":"mixtral-8x7b-32768",
+                "model":"llama3-8b-8192",       # ✅ safe Groq model
+                "stream": False,
                 "messages":[{"role":"user","content":"Ping"}],
                 "max_tokens":5
             },
