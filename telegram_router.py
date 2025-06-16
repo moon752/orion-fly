@@ -6,6 +6,22 @@ CHAT_ID  = os.getenv("TELEGRAM_CHAT_ID")
 bot = telebot.TeleBot(BOT_TOKEN)
 
 
+
+@bot.message_handler(commands=['auto_build'])
+def handle_auto_build(msg):
+    if str(msg.chat.id)!=CHAT_ID: return
+    bot.send_message(CHAT_ID,"🔍 Auto‑build started…")
+    from builder import find_targets
+    targets=find_targets()
+    if not targets:
+        bot.send_message(CHAT_ID,"✅ Nothing to build.")
+        return
+    from builder.gen_patch import main as build
+    for t in targets: build(t)
+    from builder.apply_and_push import main as push
+    push()
+    bot.send_message(CHAT_ID,"🚀 Auto‑build complete & pushed.")
+
 @bot.message_handler(commands=['auto_build'])
 def handle_auto_build(message):
     if str(message.chat.id) != CHAT_ID: return
