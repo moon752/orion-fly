@@ -31,5 +31,8 @@ def build(path: str):
     return make_patch(path)
 
 
+
 if __name__ == "__main__":
-    main()
+    import sys, json
+    target = sys.argv[1] if len(sys.argv) > 1 else "demo.py"
+    print(json.dumps({"generated": main(target)}))
