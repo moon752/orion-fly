@@ -1,30 +1,29 @@
 """
 builder.audit
 -------------
-Finds Python files that are empty, extremely short, or still contain TODO / stub markers.
-Returns a list of relative paths.
+Returns a list of Python files that need attention (empty, very short, or marked TODO/stub).
 """
 
 from pathlib import Path
 import re
 
-ROOTS = [
-    "core", "builder", "freelance", "tasks", "storage",
-    "reports", "dashboard", "sim", "security", "utils"
-]
+EXCLUDE_NAMES = {"__init__.py", "telegram_router.py"}
 
 def find_targets() -> list[str]:
-    targets: list[str] = []
-    for root in ROOTS:
-        for p in Path(root).rglob("*.py"):
-            txt = p.read_text(errors="ignore")
+    targets = []
+    for file in Path(".").rglob("*.py"):
+        if (
+            file.name not in EXCLUDE_NAMES
+            and "site-packages" not in str(file)
+        ):
+            txt = file.read_text(errors="ignore")
             if (
-                not txt.strip()                # completely empty
-                or len(txt) < 40               # too short / stub
+                not txt.strip()                       # empty file
+                or len(txt) < 40                      # too short
                 or re.search(r"TODO|pass\\s+#\\s*stub|#\\s*🚧", txt)
             ):
-                targets.append(str(p))
-    return sorted(targets)
+                targets.append(str(file))
+    return targets
 
 if __name__ == "__main__":
     print("\n".join(find_targets()) or "✅ No gaps detected.")
