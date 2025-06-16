@@ -24,5 +24,12 @@ def main():
     path = sys.argv[1] if len(sys.argv) > 1 else "demo.py"
     print(json.dumps({"generated": make_patch(path)}))
 
+
+# Public helper used by Telegram auto_build
+def build(path: str):
+    """Wrapper for telegram_router.py compatibility."""
+    return make_patch(path)
+
+
 if __name__ == "__main__":
     main()
