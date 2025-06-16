@@ -59,4 +59,11 @@ def hello(msg): bot.send_message(msg.chat.id,"👋 ORION online.")
 
 if __name__ == "__main__":
     print("🤖 ORION Telegram router running…")
-    bot.infinity_polling()
+
+import time
+while True:
+    try:
+        bot.infinity_polling()
+    except Exception as e:
+        print("Polling failed, retrying in 5s…", e)
+        time.sleep(5)
