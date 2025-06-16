@@ -16,7 +16,7 @@ def handle_auto_build(msg):
     if not targets:
         bot.send_message(CHAT_ID,"✅ Nothing to build.")
         return
-    from builder.gen_patch import main as build
+    from builder.gen_patch import build
     for t in targets: build(t)
     from builder.apply_and_push import main as push
     push()
