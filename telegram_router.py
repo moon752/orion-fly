@@ -1,7 +1,18 @@
-import telebot, os
+
+import os
+from dotenv import load_dotenv
+load_dotenv()  # load .env into environment
+
+BOT_TOKEN = os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN")
+if not BOT_TOKEN:
+    raise RuntimeError("❌ BOT_TOKEN (or TELEGRAM_BOT_TOKEN) not set!")
+
+import telebot
+bot = telebot.TeleBot(BOT_TOKEN)
+
 from dotenv import load_dotenv
 load_dotenv()
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+
 CHAT_ID  = os.getenv("TELEGRAM_CHAT_ID")
 bot = telebot.TeleBot(BOT_TOKEN)
 
