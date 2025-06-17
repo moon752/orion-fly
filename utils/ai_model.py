@@ -1,18 +1,19 @@
 
-"""ORION LLM wrapper: Groq primary, Together fallback."""
-import os, time, random, requests
+"""ORION LLM wrapper — Groq primary, Together fallback."""
 
-# === KEYS ===
+import os, time, requests
+
+# === Keys from environment (.env / Replit Secrets) ===
 GROQ_KEYS = [k for k in os.getenv("GROQ_KEYS", "").split(",") if k]
 TOGETHER_KEY = os.getenv("TOGETHER_API_KEY")
 
-# === Simple throttle (1 req/sec per key) ===
-_last_hit = {}
+# === Simple 1‑req/sec per‑key throttler ===
+_LAST = {}
 def _throttle(key):
     now = time.time()
-    if key in _last_hit and now - _last_hit[key] < 1:
-        time.sleep(1 - (now - _last_hit[key]))
-    _last_hit[key] = time.time()
+    if key in _LAST and now - _LAST[key] < 1:
+        time.sleep(1 - (now - _LAST[key]))
+    _LAST[key] = time.time()
 
 # === Groq call ===
 def _call_groq(key, messages, temp):
@@ -24,8 +25,8 @@ def _call_groq(key, messages, temp):
             "model": "mixtral-8x7b-32768",
             "messages": messages,
             "temperature": temp,
-            "stream": False,
-            "max_tokens": 512
+            "max_tokens": 512,
+            "stream": False
         },
         timeout=40
     )
@@ -33,7 +34,7 @@ def _call_groq(key, messages, temp):
     return r.json()["choices"][0]["message"]["content"]
 
 # === Together call ===
-def _call_together(messages, temp, model="llama-2-70b-chat"):
+def _call_together(messages, temp, model="llama-3-70b-chat"):
     r = requests.post(
         "https://api.together.xyz/v1/chat/completions",
         headers={"Authorization": f"Bearer {TOGETHER_KEY}"},
@@ -60,4 +61,4 @@ def smart_chat(messages, temp=0.7):
     # 2) Together fallback
     if TOGETHER_KEY:
         return _call_together(messages, temp)
-    raise RuntimeError("All providers failed (Groq & Together)")
+    raise RuntimeError("All providers failed (Groq & Together).")
