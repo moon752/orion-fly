@@ -2,3 +2,21 @@
 
 def main():
     print("🔧 utils/ai_model.py ready")
+
+# ---------- Fireworks helper ----------
+import requests, time
+_FW_LAST = {}
+def _fw_throttle(k):
+    now=time.time()
+    if k in _FW_LAST and now-_FW_LAST[k] < 1: time.sleep(1-(now-_FW_LAST[k]))
+    _FW_LAST[k]=time.time()
+
+def _fw_chat(key, messages, model="llama-v3-8b-instruct", temp=0.7, mx=512):
+    _fw_throttle(key)
+    r=requests.post("https://api.fireworks.ai/v1/chat/completions",
+        headers={"Authorization":f"Bearer {key}"},
+        json={"model":model,"messages":messages,"temperature":temp,
+              "max_tokens":mx,"stream":False},
+        timeout=40)
+    r.raise_for_status()
+    return r.json()["choices"][0]["message"]["content"]
