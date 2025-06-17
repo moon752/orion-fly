@@ -20,3 +20,31 @@ def _fw_chat(key, messages, model="llama-v3-8b-instruct", temp=0.7, mx=512):
         timeout=40)
     r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"]
+
+
+# --- Fireworks AI integration ---
+import os
+from openai import OpenAI as _FWOpenAI
+
+FW_CLIENT = _FWOpenAI(
+    base_url=os.getenv("FIREWORKS_API_BASE", "https://api.fireworks.ai/inference/v1"),
+    api_key=os.getenv("FIREWORKS_API_KEY")
+)
+
+def call_fireworks(messages, model, temp=0.7):
+    resp = FW_CLIENT.chat.completions.create(
+        model=model,
+        messages=messages,
+        temperature=temp,
+        stream=False
+    )
+    return resp.choices[0].message.content
+
+# Wrap into ai.chat fallback
+_original_chat = ai.chat
+def chat_with_fw(messages, model=None):
+    try:
+        return call_fireworks(messages, model or "accounts/fireworks/models/deepseek-r1")
+    except Exception:
+        return _original_chat(messages)
+ai.chat = chat_with_fw
