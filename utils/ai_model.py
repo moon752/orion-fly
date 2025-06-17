@@ -36,7 +36,7 @@ def _call_groq(key, messages, temp):
 # === Together call ===
 def _call_together(messages, temp, model="llama-3-70b-chat"):
     r = requests.post(
-        "https://api.together.xyz/v1/chat/completions",
+        "https://api.together.ai/v1/chat/completions",
         headers={"Authorization": f"Bearer {TOGETHER_KEY}"},
         json={
             "model": model,
