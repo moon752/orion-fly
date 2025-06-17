@@ -2,3 +2,17 @@
 
 def main():
     print("🔧 job_applicator.py ready")
+
+
+# --- stub added by ORION ---
+def fetch_jobs():
+    """Return a list of dummy jobs for now."""
+    return [
+        {"title": "Simple Python Fix", "description": "Fix a bug in script."},
+        {"title": "Write short article", "description": "500‑word blog post."}
+    ]
+
+
+def apply_to_job(job):
+    """Stub: just print the action."""
+    print(f"🚀 (Stub) Applied to {{job['title']}}")
