@@ -1,80 +1,73 @@
-
-import os
-from dotenv import load_dotenv
-load_dotenv()  # load .env into environment
-
-BOT_TOKEN = os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN")
-if not BOT_TOKEN:
-    raise RuntimeError("❌ BOT_TOKEN (or TELEGRAM_BOT_TOKEN) not set!")
-
-import telebot
-bot = telebot.TeleBot(BOT_TOKEN)
-
+import os, telebot
 from dotenv import load_dotenv
 load_dotenv()
 
-CHAT_ID  = os.getenv("TELEGRAM_CHAT_ID")
+from job_applicator import stop_loop, get_stats
+from updater import self_update
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+if not BOT_TOKEN:
+    raise ValueError("BOT_TOKEN missing")
 bot = telebot.TeleBot(BOT_TOKEN)
 
+@bot.message_handler(commands=['ping'])
+def handle_ping(msg):
+    bot.reply_to(msg, "pong 🏓")
+
+@bot.message_handler(commands=['status'])
+def handle_status(msg):
+    s = get_stats()
+    txt = (f"📊 *ORION Status*\n• Jobs fetched: {s['jobs']}\n"
+           f"• Applied: {s['applied']}\n• Errors: {s['errors']}")
+    bot.reply_to(msg, txt, parse_mode="Markdown")
+
+@bot.message_handler(commands=['stoploop'])
+def handle_stop(msg):
+    stop_loop()
+    bot.reply_to(msg, "🛑 Bid loop stopped by command.")
+
+@bot.message_handler(commands=['update'])
+def handle_update(msg):
+    bot.reply_to(msg, "🔁 Pulling latest code from GitHub…")
+    result = self_update()
+    bot.reply_to(msg, f"✅ Update result:\n{result}")
+
+print("[ORION] Telegram control ready.")
+
+from ai_builder.ai_build_manager import build_and_fix
+
+
+
+
+@bot.message_handler(commands=['help'])
+def handle_help(msg):
+    bot.reply_to(msg, "/ping /status /stoploop /update /auto_build /profile")
+
+@bot.message_handler(commands=['profile'])
+def handle_profile(msg):
+    email = os.getenv("ORION_FREELANCER_SELF_EMAIL","not‑set")
+    bot.reply_to(msg, f"Current Freelancer email: {email}")
+
+
+
+@bot.message_handler(commands=['status_check'])
+def handle_status_check(msg):
+    try:
+        from ai_builder import ai_self_planner as planner
+        bot.reply_to(msg, planner.build_roadmap())
+    except Exception as e:
+        bot.reply_to(msg, f"❌ Failed to scan: {e}")
 
 
 @bot.message_handler(commands=['auto_build'])
 def handle_auto_build(msg):
-    if str(msg.chat.id)!=CHAT_ID: return
-    bot.send_message(CHAT_ID,"🔍 Auto-build started…")
-    from builder import find_targets
-    targets=find_targets()
-    if not targets:
-        bot.send_message(CHAT_ID,"✅ Nothing to build.")
-        return
-    from builder.gen_patch import build
-    for t in targets: build(t)
-    from builder.apply_and_push import main as push
-    push()
-    bot.send_message(CHAT_ID,"🚀 Auto-build complete & pushed.")
+    from ai_builder.ai_build_manager import build_and_fix
+    parts = msg.text.split(' ',1)
+    task = parts[1] if len(parts)>1 else ''
+    bot.reply_to(msg, "🔧 Starting AI build & repair…")
+    ok = build_and_fix(lambda t: bot.reply_to(msg, t))
+    if ok:
+        bot.reply_to(msg, "✅ Build success. ORION will restart jobs in 30 min.")
 
-@bot.message_handler(commands=['auto_build'])
-def handle_auto_build(message):
-    if str(message.chat.id) != CHAT_ID: return
-    from builder.audit import find_gaps
-    missing = find_gaps()
-    if not missing:
-        bot.send_message(CHAT_ID,"✅ All phases present.")
-        return
-    bot.send_message(CHAT_ID,f"🔨 Building {len(missing)} missing modules...")
-    for path in missing.values():
-        from builder.gen_patch import make_patch
-        diff = make_patch(path)
-        bot.send_message(CHAT_ID,f"Patch ready: {diff}")
-    from builder.apply_and_push import main as apply
-    apply()
-    bot.send_message(CHAT_ID,"🚀 Auto-build finished & pushed!")
 
-@bot.message_handler(commands=['cmd'])
-def cmd(msg):
-    if str(msg.chat.id) != CHAT_ID: return
-    try:
-        result = eval(msg.text.replace('/cmd ','') , globals())
-        bot.send_message(CHAT_ID,f"✅ CMD:\n{result}")
-    except Exception as e:
-        bot.send_message(CHAT_ID,f"❌ CMD error:\n{e}")
-
-@bot.message_handler(commands=['think'])
-def think(msg):
-    idea = msg.text.replace('/think ','')
-    with open('brain/agent_ideas.txt','a') as f: f.write(idea+'\n')
-    bot.send_message(CHAT_ID,f"🧠 Idea logged:\n{idea}")
-
-@bot.message_handler(commands=['start','hello'])
-def hello(msg): bot.send_message(msg.chat.id,"👋 ORION online.")
-
-if __name__ == "__main__":
-    print("🤖 ORION Telegram router running…")
-
-import time
-while True:
-    try:
-        bot.infinity_polling()
-    except Exception as e:
-        print("Polling failed, retrying in 5s…", e)
-        time.sleep(5)
+bot.infinity_polling()
